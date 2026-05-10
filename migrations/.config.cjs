@@ -11,6 +11,14 @@ module.exports = {
   databaseUrl: process.env.DATABASE_URL,
   dir: 'migrations/sql',
   migrationsTable: 'pgmigrations',
+  // Tell node-pg-migrate to load .sql files as raw SQL. Default is 'js',
+  // which makes the runner require() each migration file as a JavaScript
+  // module — and `CREATE EXTENSION ...` is not valid JS, so the runner
+  // would die with `SyntaxError: Invalid or unexpected token`. With
+  // `migrationFileLanguage: 'sql'`, the runner reads each file as text,
+  // splits on the `---- Down ----` separator, and executes the up section
+  // against the database.
+  migrationFileLanguage: 'sql',
   direction: 'up',
   count: Infinity,
   // Forward-only after Phase 1 launch per ADR-027 (Phase 1+ rules).
