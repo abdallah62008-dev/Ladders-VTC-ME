@@ -71,10 +71,9 @@ export async function seedRole(
       [slug, slug.split('.')[0] ?? 'misc'],
     );
 
-    const perm = await client.query<{ id: string }>(
-      `SELECT id FROM permission WHERE slug = $1`,
-      [slug],
-    );
+    const perm = await client.query<{ id: string }>(`SELECT id FROM permission WHERE slug = $1`, [
+      slug,
+    ]);
     const permissionId = perm.rows[0]!.id;
 
     await client.query(

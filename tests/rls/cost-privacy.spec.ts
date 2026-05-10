@@ -336,9 +336,9 @@ describe('D-DB-010 Class 2 — DELETE blocked at trigger level', () => {
         [variantId, wh.rows[0]!.id],
       );
 
-      await expect(client.query(`DELETE FROM stock_movement WHERE variant_id = $1`, [variantId])).rejects.toThrow(
-        /Class 2.*DELETE forbidden/i,
-      );
+      await expect(
+        client.query(`DELETE FROM stock_movement WHERE variant_id = $1`, [variantId]),
+      ).rejects.toThrow(/Class 2.*DELETE forbidden/i);
     });
   });
 

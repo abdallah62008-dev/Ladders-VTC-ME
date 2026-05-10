@@ -227,9 +227,7 @@ describe('Layer 3 — API token scopes (D-RBAC-001)', () => {
   });
 
   test('assertTokenScopesAllowed accepts cost scope with dual approval', () => {
-    expect(() =>
-      assertTokenScopesAllowed(['cost.read'], { dualApproval: true }),
-    ).not.toThrow();
+    expect(() => assertTokenScopesAllowed(['cost.read'], { dualApproval: true })).not.toThrow();
   });
 
   test('CostScopeRequiresDualApprovalError lists offending scopes', () => {
