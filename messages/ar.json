@@ -1,0 +1,36 @@
+{
+  "_meta": {
+    "language": "ar",
+    "status": "Phase 1 sprint 1 placeholder — final copy delivered by D-SEO-005 Arabic copywriter",
+    "build_now_activate_when_ready": "Per D-READY-002: copy is draft until copywriter approves; storefront marks unapproved sections inactive."
+  },
+  "common": {
+    "appName": "سمارت ليدرز",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "tryAgain": "حاول مرة أخرى"
+  },
+  "home": {
+    "title": "سمارت ليدرز — السلالم الذكية",
+    "subtitle": "[محتوى تجريبي — في انتظار النص النهائي من كاتب المحتوى]",
+    "cta": "تصفح المنتجات"
+  },
+  "admin": {
+    "dashboard": "لوحة التحكم",
+    "products": "المنتجات",
+    "countries": "الدول",
+    "warehouses": "المستودعات",
+    "audit": "سجل التدقيق",
+    "countryContext": "سياق الدولة"
+  },
+  "status": {
+    "draft": "مسودة",
+    "pending_configuration": "قيد الإعداد",
+    "pending_approval": "قيد الموافقة",
+    "ready": "جاهز",
+    "active": "نشط",
+    "paused": "متوقف",
+    "blocked": "محجوب",
+    "archived": "مؤرشف"
+  }
+}

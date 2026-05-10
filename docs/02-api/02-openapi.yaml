@@ -1,0 +1,174 @@
+openapi: 3.1.0
+info:
+  title: Smart Ladders Commerce API
+  version: 1.0.0-draft
+  description: |
+    REST API for Smart Ladders Commerce Platform.
+
+    **Status:** Draft (Phase 0). Endpoints stubbed; full schemas TBD during Phase 1+.
+
+    See `02-api/01-conventions.md` for general conventions.
+
+servers:
+  - url: https://staging.ladders.vtc-me.com/api/v1
+    description: Staging
+  - url: https://ladders.vtc-me.com/api/v1
+    description: Production
+  # Note: tl.vtc-me.com is reserved as a possible future short tracking/redirect
+  # domain (marketer referral / QR links). It is NOT an API host.
+
+security:
+  - apiToken: []
+
+components:
+  securitySchemes:
+    apiToken:
+      type: apiKey
+      in: header
+      name: X-API-Token
+    customerJWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    CountryParam:
+      name: country
+      in: query
+      required: true
+      schema:
+        type: string
+        enum: [sa, eg, iq]
+    LocaleParam:
+      name: locale
+      in: query
+      required: true
+      schema:
+        type: string
+        enum: [ar-sa, ar-eg, ar-iq, en-sa, en-eg, en-iq]
+    CursorParam:
+      name: cursor
+      in: query
+      schema: { type: string }
+    LimitParam:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string }
+            message_en: { type: string }
+            message_ar: { type: string }
+            details: { type: object }
+            request_id: { type: string }
+
+    Product:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        sku: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        meta_desc: { type: string }
+        primary_image_url: { type: string }
+        variants:
+          type: array
+          items: { $ref: '#/components/schemas/Variant' }
+        price:
+          type: object
+          properties:
+            regular_price: { type: string }
+            sale_price: { type: string, nullable: true }
+            currency_code: { type: string }
+        availability:
+          type: object
+          properties:
+            qty_available: { type: integer }
+            in_stock: { type: boolean }
+            lead_time_days: { type: integer }
+        # NOTE: cost columns intentionally omitted.
+
+    Variant:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        sku: { type: string }
+        height_cm: { type: integer }
+        max_load_kg: { type: integer }
+        folded_cm: { type: integer }
+        weight_kg: { type: number }
+        material: { type: string, enum: [aluminum, fiberglass, steel] }
+        ladder_type: { type: string }
+
+paths:
+  /products:
+    get:
+      summary: List products (filtered by country + locale)
+      parameters:
+        - $ref: '#/components/parameters/CountryParam'
+        - $ref: '#/components/parameters/LocaleParam'
+        - $ref: '#/components/parameters/CursorParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: group
+          in: query
+          schema: { type: string }
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [relevance, price_asc, price_desc, height, popularity, newest]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Product' }
+                  next_cursor: { type: string, nullable: true }
+                  has_more: { type: boolean }
+
+  /products/{slug}:
+    get:
+      summary: Get product detail by slug + country
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+        - $ref: '#/components/parameters/CountryParam'
+        - $ref: '#/components/parameters/LocaleParam'
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Product not active in country
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  # TODO: define remaining endpoints in Phase 1:
+  # /categories, /groups, /pricing, /cart, /checkout, /orders,
+  # /customers/me, /conversations, /ai/chat, /marketers/me,
+  # /coupons/validate, /payouts, /pixels/track,
+  # /landing-pages/{slug}, /webhooks/whatsapp, /webhooks/payments/*
+
+# tags:
+#   - name: Catalog
+#   - name: Cart & Checkout
+#   - name: Customers
+#   - name: AI Chat
+#   - name: Marketers
+#   - name: Webhooks

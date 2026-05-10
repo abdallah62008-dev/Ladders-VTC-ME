@@ -1,0 +1,39 @@
+/* Tailwind v4 + brand tokens */
+@import 'tailwindcss';
+
+/* RTL/LTR — Logical properties already used; the dir attribute on <html>
+   in app/[locale]/layout.tsx flips Tailwind's rtl: utilities automatically
+   when the variant is applied. */
+
+@theme {
+  --font-sans:
+    'IBM Plex Sans Arabic', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --color-brand-50: oklch(0.97 0.02 240);
+  --color-brand-500: oklch(0.55 0.15 245);
+  --color-brand-700: oklch(0.4 0.18 245);
+}
+
+/* Storefront watermark on staging — D-PERF-001 staging safety */
+[data-env='staging']::before {
+  content: 'STAGING ENVIRONMENT — NOT FOR REAL CUSTOMERS';
+  position: fixed;
+  top: 0;
+  inset-inline: 0;
+  z-index: 9999;
+  background-color: rgb(254 240 138);
+  color: rgb(120 53 15);
+  text-align: center;
+  padding: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+html {
+  font-family: var(--font-sans);
+}
+
+body {
+  min-height: 100vh;
+  background-color: white;
+  color: rgb(24 24 27);
+}

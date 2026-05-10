@@ -1,0 +1,55 @@
+{
+  "_meta": {
+    "config": "mobile",
+    "decision": "D-INFRA-010 (locked 2026-05-09)",
+    "thresholds": "Customer-facing mobile ≥ 0.90 / Admin mobile ≥ 0.85",
+    "cwv": "LCP < 2.0s, CLS < 0.05, TBT < 200ms (proxy for INP)",
+    "url_pattern_note": "URL regex matches Phase 1 locale shape /[a-z]{2}-[a-z]{2}/ — adding a country requires editing lib/i18n/config.ts only (D-COUNTRY-014 spirit). Sibling lighthouserc.json holds the desktop run."
+  },
+  "ci": {
+    "collect": {
+      "url": [
+        "http://localhost:3000/ar-sa",
+        "http://localhost:3000/en-sa",
+        "http://localhost:3000/ar-sa/admin",
+        "http://localhost:3000/ar-sa/admin/products",
+        "http://localhost:3000/ar-sa/admin/countries",
+        "http://localhost:3000/ar-sa/admin/warehouses"
+      ],
+      "numberOfRuns": 1,
+      "settings": {
+        "preset": "mobile"
+      }
+    },
+    "assert": {
+      "assertMatrix": [
+        {
+          "matchingUrlPattern": "^http://localhost:3000/[a-z]{2}-[a-z]{2}/?$",
+          "preset": "lighthouse:no-pwa",
+          "assertions": {
+            "categories:performance": ["error", { "minScore": 0.9 }],
+            "categories:accessibility": ["warn", { "minScore": 0.9 }],
+            "categories:best-practices": ["warn", { "minScore": 0.9 }],
+            "categories:seo": ["warn", { "minScore": 0.9 }],
+            "first-contentful-paint": ["warn", { "maxNumericValue": 1800 }],
+            "largest-contentful-paint": ["error", { "maxNumericValue": 2000 }],
+            "cumulative-layout-shift": ["error", { "maxNumericValue": 0.05 }],
+            "total-blocking-time": ["warn", { "maxNumericValue": 200 }]
+          }
+        },
+        {
+          "matchingUrlPattern": "^http://localhost:3000/[a-z]{2}-[a-z]{2}/admin",
+          "preset": "lighthouse:no-pwa",
+          "assertions": {
+            "categories:performance": ["error", { "minScore": 0.85 }],
+            "largest-contentful-paint": ["error", { "maxNumericValue": 2000 }],
+            "cumulative-layout-shift": ["error", { "maxNumericValue": 0.05 }]
+          }
+        }
+      ]
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}

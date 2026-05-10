@@ -1,0 +1,11 @@
+.next/
+out/
+node_modules/
+coverage/
+playwright-report/
+test-results/
+.lighthouseci/
+pnpm-lock.yaml
+*.min.js
+*.min.css
+docs/

@@ -1,0 +1,36 @@
+{
+  "_meta": {
+    "language": "en",
+    "status": "Phase 1 sprint 1 placeholder — final copy delivered by D-SEO-005 English copy",
+    "build_now_activate_when_ready": "Per D-READY-002: copy is draft until copywriter approves; storefront marks unapproved sections inactive."
+  },
+  "common": {
+    "appName": "Smart Ladders",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "tryAgain": "Try again"
+  },
+  "home": {
+    "title": "Smart Ladders — Smart Ladders for Modern Homes & Sites",
+    "subtitle": "[Placeholder copy — final wording pending copywriter delivery]",
+    "cta": "Browse Products"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "countries": "Countries",
+    "warehouses": "Warehouses",
+    "audit": "Audit Log",
+    "countryContext": "Country Context"
+  },
+  "status": {
+    "draft": "Draft",
+    "pending_configuration": "Pending Configuration",
+    "pending_approval": "Pending Approval",
+    "ready": "Ready",
+    "active": "Active",
+    "paused": "Paused",
+    "blocked": "Blocked",
+    "archived": "Archived"
+  }
+}

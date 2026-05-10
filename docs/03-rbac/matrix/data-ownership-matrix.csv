@@ -1,0 +1,54 @@
+entity,primary_owner_role,secondary_owner_role,approver_for_changes,reviewer_for_changes,read_scope,sensitive,notes
+product,product_manager,marketing_manager,product_manager,marketing_manager,all_admin,no,Catalog data; published storefront content
+product_translation,content_seo_editor,product_manager,content_seo_editor,product_manager,all_admin,no,Per-locale copy
+product_image,media_manager,marketing_manager,media_manager,product_manager,all_admin,no,Media assets
+product_video,media_manager,marketing_manager,media_manager,product_manager,all_admin,no,Media assets
+product_certification,compliance_officer,product_manager,compliance_officer,product_manager,all_admin,yes,Per Module 25 — D-SAFE-001
+product_variant,product_manager,marketing_manager,product_manager,marketing_manager,all_admin,no,SKU specs
+country,country_manager,super_admin,super_admin,country_manager,all_admin,yes,Activation requires override
+country_compliance_profile,legal,country_manager,legal,country_manager,all_admin,yes,Phase 8 populated; KSA seeded Phase 1
+warehouse,inventory_manager,operations_director,inventory_manager,operations_director,all_admin,no,Per Module 4
+variant_country_price,finance_admin,product_manager,finance_admin,product_manager,all_admin,yes,Per-country price; profit guardrail-gated
+variant_country_cost,finance_admin,super_admin,finance_admin,super_admin,finance_only,yes_critical,RLS-gated; D-RBAC-001 locked; cost.read required
+variant_marketer_cost,marketing_manager,marketer_manager,marketing_manager,marketer_manager,marketing_plus,yes,marketer_cost.read required
+variant_warehouse_stock,inventory_manager,warehouse_manager,inventory_manager,warehouse_manager,operations_plus,no,Movement audit-logged
+profit_floor_rule,finance_admin,super_admin,finance_admin,super_admin,finance_only,yes,D-PAY-002/003 locked; raise = audit-only; lower = approval
+customer,customer_support_lead,marketing_manager,customer_support_lead,marketing_manager,operations_plus,yes,PII; PDPL-bound
+customer_address,customer_support_agent,customer_support_lead,customer_support_agent,customer_support_lead,operations_plus,yes,PII
+customer_consent,legal,customer_support_lead,legal,customer_support_lead,operations_plus,yes,PDPL audit trail
+customer_orders,operations_director,customer_support_lead,operations_director,customer_support_lead,all_admin_partial,yes,Soft-delete; 7y retention; financial record
+order_line,finance_admin,operations_director,finance_admin,operations_director,all_admin_partial,yes,Cost columns RLS-gated
+payment_transaction,finance_admin,operations_director,finance_admin,operations_director,finance_plus,yes,Per Module 7
+refund,finance_admin,super_admin,finance_admin,super_admin,finance_plus,yes,Override-gated for exceptions
+deposit,finance_admin,operations_director,finance_admin,operations_director,finance_plus,yes,COD risk control
+invoice,finance_admin,super_admin,finance_admin,super_admin,finance_plus,yes,7y retention
+marketer,marketer_manager,marketing_manager,marketer_manager,marketing_manager,marketing_plus,no,Phase 5
+marketer_payout,finance_admin,marketing_manager,finance_admin+super_admin_dual,marketing_manager,finance_plus,yes,Payout exception override-gated
+coupon,marketing_manager,marketer_manager,marketing_manager,marketer_manager,marketing_plus,no,Activation guardrail-gated
+campaign,marketing_manager,super_admin,marketing_manager,super_admin,marketing_plus,no,Campaign profit gate
+landing_page,marketing_manager,content_seo_editor,marketing_manager,content_seo_editor,marketing_plus,no,Pre-publish gate enforced
+faq_policy,content_seo_editor,ai_supervisor,content_seo_editor,ai_supervisor,all_admin,no,AI knowledge source
+guide,content_seo_editor,ai_supervisor,content_seo_editor,ai_supervisor,all_admin,no,Academy content lives here
+ai_prompt,ai_supervisor,super_admin,ai_supervisor,super_admin,ai_admin,yes,Sensitive prompts approval-gated
+ai_tool_call,ai_supervisor,super_admin,ai_supervisor,super_admin,ai_admin,yes,Audit trail for AI behavior
+conversation,customer_support_lead,ai_supervisor,customer_support_lead,ai_supervisor,operations_plus,yes,PII in messages
+message,customer_support_lead,ai_supervisor,customer_support_lead,ai_supervisor,operations_plus,yes,PII; redaction rules
+script_inventory,security_lead+marketing_manager,super_admin,security_lead+marketing_manager_dual,super_admin,marketing_plus,yes,Joint reviewer per D-PERF-002
+feature_flag,infra_lead,super_admin,super_admin,infra_lead,all_admin,no,Audit log per flip
+retention_policy,finance_admin+legal,super_admin,finance_admin+legal_dual,super_admin,operations_plus,yes,7y minimums for financial / audit
+cleanup_job,dba,infra_lead,super_admin+finance_admin_dual,dba,operations_plus,yes,Sensitive cleanup override-gated
+backup_job,infra_lead,dba,super_admin+infra_lead_dual,dba,operations_plus,yes,Pre-risky-change auto-backup
+restore_job,super_admin,dba,super_admin+dba_dual,cto,operations_plus,yes,Production restore: dual approval
+audit_log,security_lead,super_admin,immutable,security_lead,operations_plus,yes,Never deleted; never edited
+override_request,security_lead,super_admin,per_override_type,security_lead,all_admin,yes,Per Module 20
+alert,infra_lead,operations_director,infra_lead,operations_director,all_admin,no,Per Module 23
+service_ticket,operations_director,customer_support_lead,operations_director,customer_support_lead,operations_plus,no,Phase 9
+warranty_claim,operations_director,finance_admin,operations_director,finance_admin,operations_plus,no,Phase 9
+product_batch,operations_director,inventory_manager,operations_director,inventory_manager,operations_plus,yes,Recall flag = super_admin+ops_director dual
+safety_guideline,compliance_officer,legal,compliance_officer+legal_dual,product_manager,all_admin,yes,Module 25
+safety_claim,compliance_officer,product_manager,compliance_officer+product_manager_dual,legal,all_admin,yes_critical,Forbidden claim list enforced
+safety_incident_report,compliance_officer,legal,compliance_officer,legal,operations_plus,yes_critical,10y retention
+customer_review,customer_support_lead,marketing_manager,customer_support_lead,marketing_manager,marketing_plus,no,Auto-flag for safety
+recommendation_rule,product_manager,ai_supervisor,product_manager,ai_supervisor,marketing_plus,no,Module 24
+readiness_check_run,operations_director,dba,n/a_auto,operations_director,operations_plus,no,Module 27
+deploy_log,devops,cto,n/a_auto,devops,operations_plus,no,Promotion checklist evidence

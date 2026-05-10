@@ -1,0 +1,205 @@
+# Smart Ladders Commerce — Phase 1 sprint 2A CI pipeline
+#
+# Sprint 2A additions to the Sprint 1 12-step pipeline:
+#   - Postgres 16.4 service container (D-INFRA-004 / ADR-027)
+#   - DATABASE_URL job env (CI throwaway DB only — never production)
+#   - pg_isready health-check loop on the Postgres service
+#   - Step 11: pnpm db:migrate up against fresh test DB
+#   - Step 12: pnpm test:rls (D-RBAC-001 cost privacy enforcement)
+#
+# All steps must pass before merge. No --no-verify, no skipping CI.
+# Production deploys still happen only after Phase 1 sign-off.
+#
+# Phase 1 sprint 2A scope: schema + RLS + cost privacy foundation.
+#   - No live secrets
+#   - CI uses a throwaway Postgres 16.4 service container
+#   - No .env in repo (DATABASE_URL is set inline at job level for CI only)
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel in-flight runs on the same ref to save minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9.12.0'
+  # Tells Next.js to skip telemetry on CI.
+  NEXT_TELEMETRY_DISABLED: 1
+
+jobs:
+  ci:
+    name: Lint / Test / Migrate / RLS / Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # ───── Postgres 16.4 service container (D-INFRA-004 / ADR-027) ─────
+    # Pinned to 16.4 specifically so dev/CI/prod minor versions stay aligned.
+    # Health-check loop ensures we don't hit the migrate step before the
+    # service is ready to accept connections.
+    services:
+      postgres:
+        image: postgres:16.4
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: smartladders_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # CI-scoped DATABASE_URL — never points at staging/prod. Read by
+    # migrations/.config.cjs and by the RLS test runner.
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/smartladders_test
+
+    steps:
+      # ───── Step 1 — Checkout ─────────────────────────────────────────
+      - name: 1. Checkout
+        uses: actions/checkout@v4
+
+      # ───── Step 2 — No mixed lockfiles (D-INFRA-006) ─────────────────
+      - name: 2. No mixed lockfiles
+        run: bash scripts/ci/no-mixed-lockfiles.sh
+
+      # ───── Step 3 — Setup pnpm ───────────────────────────────────────
+      - name: 3. Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      # ───── Step 4 — Setup Node + pnpm cache ──────────────────────────
+      - name: 4. Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      # ───── Step 5 — Install dependencies (frozen lockfile) ───────────
+      - name: 5. Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # ───── Step 6 — CI grep tests (architectural enforcement) ────────
+      - name: 6. CI grep tests (architectural rules)
+        run: pnpm ci:grep
+
+      # ───── Step 7 — Lint (D-INFRA-007) ───────────────────────────────
+      - name: 7. ESLint
+        run: pnpm lint
+
+      # ───── Step 8 — Format check (D-INFRA-007) ───────────────────────
+      - name: 8. Prettier format check
+        run: pnpm format:check
+
+      # ───── Step 9 — Typecheck ────────────────────────────────────────
+      - name: 9. TypeScript typecheck
+        run: pnpm typecheck
+
+      # ───── Step 10 — Unit tests (D-INFRA-008) ────────────────────────
+      # Pure unit tests; no DB needed. Runs before DB-bound steps so
+      # static failures surface quickly without spinning the migrate.
+      - name: 10. Unit tests (Vitest)
+        run: pnpm test:unit
+
+      # ───── Step 11 — DB migrate up (Sprint 2A) ───────────────────────
+      # Wait briefly for Postgres health-check to flip green, then apply
+      # all migrations against the throwaway smartladders_test database.
+      # node-pg-migrate reads DATABASE_URL from the job env above.
+      - name: 11. Database migrations (db:migrate up)
+        run: |
+          # Belt-and-braces health gate (the services block already has its own
+          # health-check, but a final pg_isready before migrate avoids race).
+          for i in $(seq 1 20); do
+            if pg_isready -h localhost -p 5432 -U postgres >/dev/null 2>&1; then
+              echo "Postgres ready after $i attempts"
+              break
+            fi
+            sleep 1
+          done
+          pnpm db:migrate up
+
+      # ───── Step 12 — RLS tests (Sprint 2A — D-RBAC-001) ──────────────
+      # Custom Postgres test runner (Vitest + pg) — verifies every
+      # non-finance role returns 0 rows on actual_cost SELECT across
+      # variant_country_cost + variant_marketer_cost.
+      - name: 12. RLS tests (cost privacy)
+        run: pnpm test:rls
+
+      # ───── Step 13 — Build ───────────────────────────────────────────
+      - name: 13. Production build
+        run: pnpm build
+
+      # ───── Step 14a — Install Playwright browsers ────────────────────
+      - name: 14a. Install Playwright browsers
+        run: pnpm dlx playwright install --with-deps chromium
+
+      # ───── Step 14b — E2E tests (D-INFRA-008) ────────────────────────
+      # Includes visual regression project (D-INFRA-009 — Playwright snapshots).
+      - name: 14b. E2E tests (Playwright)
+        run: pnpm test:e2e
+
+      # ───── Upload Playwright report on failure ───────────────────────
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+  # ───── Lighthouse CI (D-INFRA-010) ─────────────────────────────────
+  # Runs against the production build started locally by lhci.
+  # `pnpm test:lighthouse` runs both passes sequentially:
+  #   1. lighthouserc.json         (preset=desktop)
+  #   2. lighthouserc.mobile.json  (preset=mobile)
+  # Per-surface thresholds enforced:
+  #   Customer mobile ≥ 90 / desktop ≥ 95
+  #   Admin    mobile ≥ 85 / desktop ≥ 90
+  #   CWV: LCP < 2.0s / TBT < 200ms (proxy for INP) / CLS < 0.05
+  # Sprint 1: scaffold pages only. Sprint 2A is the GREEN-CONDITIONAL clearance gate.
+  lighthouse:
+    name: Lighthouse CI
+    runs-on: ubuntu-latest
+    needs: ci
+    timeout-minutes: 15
+    if: github.event.pull_request.draft != true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Lighthouse CI
+        run: pnpm test:lighthouse
+        env:
+          # Phase 1 sprint 1: no LHCI server token; sprint 2+ adds reporting target.
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
