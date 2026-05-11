@@ -46,7 +46,11 @@ jobs:
     # service is ready to accept connections.
     services:
       postgres:
-        image: postgres:16.4
+        # pgvector/pgvector:pg16 is the official pgvector image built on top of
+        # postgres:16 — ships the `vector` extension required by migration 0001
+        # (D-DB-002 + Phase 3 FAQ embeddings reservation). All other postgres
+        # service config is unchanged from the original postgres:16.4 pin.
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres

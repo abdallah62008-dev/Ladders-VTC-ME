@@ -4,7 +4,7 @@
 -- Sprint 1 ships the foundation tables. Sprint 2+ wires the role_permission seed
 -- from /docs/03-rbac/matrix/role-permission-matrix.csv.
 
--- Up
+-- Up Migration
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- user — global identity (D-CSP-001: not country-scoped at the table level;
@@ -111,7 +111,7 @@ CREATE TABLE system_setting (
   updated_by  uuid REFERENCES "user" (id)
 );
 
----- Down ----
+-- Down Migration
 DROP TRIGGER IF EXISTS audit_log_no_delete_trigger ON audit_log;
 DROP FUNCTION IF EXISTS audit_log_no_delete();
 DROP TABLE IF EXISTS system_setting;

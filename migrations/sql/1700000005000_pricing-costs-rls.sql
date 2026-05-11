@@ -36,7 +36,7 @@
 --   profit_floor_rule            — Class 3, no RLS, configurable D-PAY-002 storage
 --   cost_read_log                — Class 2, no RLS (Phase 1 reservation only)
 
--- Up
+-- Up Migration
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- App helper schema for RLS (D-RBAC-001 / D-CACHE-001)
@@ -354,7 +354,7 @@ GRANT SELECT, INSERT ON cost_read_log TO app_user;  -- INSERT-only when Phase 2 
 COMMENT ON TABLE cost_read_log IS
   'Phase 1 schema reservation only. Phase 2 instruments every cost-bearing endpoint to INSERT a row on every actual_cost / marketer_cost read. Class 2 (7-year retention). cost_read_log.read permission slug grants Super Admin + Security Lead read access; Finance Admin EXCLUDED (conflict of interest).';
 
----- Down ----
+-- Down Migration
 -- Sprint 2A pre-launch DEV-ONLY down section:
 --   drops 0005 tables for clean local re-migration.
 --   Class 2 D-DB-010 data-loss-prevention applies AFTER Phase 1 launch /

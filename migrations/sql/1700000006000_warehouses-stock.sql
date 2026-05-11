@@ -31,7 +31,7 @@
 --   returned_stock             — Class 3 (Phase 9 detail TBD; minimal Sprint 2A)
 --   inbound_stock              — Class 3 (Phase 9 detail TBD; minimal Sprint 2A)
 
--- Up
+-- Up Migration
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- warehouse — country-scoped; archive lifecycle (Class 1)
@@ -253,7 +253,7 @@ CREATE INDEX idx_inbound_stock_expected ON inbound_stock (expected_at) WHERE sta
 
 GRANT SELECT, INSERT, UPDATE ON inbound_stock TO app_user;
 
----- Down ----
+-- Down Migration
 -- Sprint 2A pre-launch DEV-ONLY down section:
 --   drops 0006 tables for clean local re-migration.
 --   Class 2 D-DB-010 data-loss-prevention applies AFTER Phase 1 launch /

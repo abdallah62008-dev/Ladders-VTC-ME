@@ -22,7 +22,7 @@
 -- nullable uuid with a deferred FK constraint to be added when media_asset
 -- ships in a later sprint.
 
--- Up
+-- Up Migration
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- category — global catalog category tree (parent/child)
@@ -218,7 +218,7 @@ CREATE TABLE product_certification (
 CREATE INDEX idx_product_certification_product ON product_certification (product_id);
 CREATE INDEX idx_product_certification_active ON product_certification (active);
 
----- Down ----
+-- Down Migration
 -- Drop in reverse dependency order. Catalog tables are Class 3 (hard-delete OK in dev).
 DROP TABLE IF EXISTS product_certification;
 DROP TABLE IF EXISTS product_video;

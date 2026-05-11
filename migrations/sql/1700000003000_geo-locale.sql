@@ -5,7 +5,7 @@
 -- D-PAY-002/003: business_min_margin + marketer floor are configurable data, not code constants.
 -- D-DB-003: monetary numeric(5,4) for rate columns; numeric(12,2) reserved for money.
 
--- Up
+-- Up Migration
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- country — root of the dynamic country/warehouse/pricing/stock architecture
@@ -96,7 +96,7 @@ CREATE TABLE country_launch_readiness (
   last_checked_at   timestamptz NOT NULL DEFAULT now()
 );
 
----- Down ----
+-- Down Migration
 DROP TABLE IF EXISTS country_launch_readiness;
 DROP TABLE IF EXISTS tax_setting;
 DROP TABLE IF EXISTS currency;

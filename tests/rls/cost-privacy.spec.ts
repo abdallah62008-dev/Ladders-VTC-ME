@@ -31,6 +31,7 @@ import {
   seedRole,
   seedVariantCountryCost,
   seedVariantMarketerCost,
+  withSavepoint,
   withTx,
   withUser,
 } from './helpers';
@@ -144,11 +145,18 @@ describe('D-RBAC-001 — variant_country_cost INSERT/UPDATE (cost.write)', () =>
       const ctx = await seedRole(client, 'country_manager', ['catalog.read']);
 
       await withUser(client, ctx.userId, async () => {
+        // Wrap the expected-failing INSERT in a SAVEPOINT so the RLS error
+        // doesn't leave the outer `withTx` transaction in aborted state
+        // (Postgres would then reject withUser's `RESET ROLE` cleanup with
+        // code 25P02). The original RLS error is re-thrown unchanged so
+        // `rejects.toThrow(...)` still matches the policy-violation message.
         await expect(
-          client.query(
-            `INSERT INTO variant_country_cost (variant_id, country_id, actual_cost, currency_code)
-             VALUES ($1, $2, '42.00', 'USD')`,
-            [variantId, countryId],
+          withSavepoint(client, () =>
+            client.query(
+              `INSERT INTO variant_country_cost (variant_id, country_id, actual_cost, currency_code)
+               VALUES ($1, $2, '42.00', 'USD')`,
+              [variantId, countryId],
+            ),
           ),
         ).rejects.toThrow(/row-level security|new row violates/i);
       });
@@ -336,9 +344,9 @@ describe('D-DB-010 Class 2 — DELETE blocked at trigger level', () => {
         [variantId, wh.rows[0]!.id],
       );
 
-      await expect(client.query(`DELETE FROM stock_movement WHERE variant_id = $1`, [variantId])).rejects.toThrow(
-        /Class 2.*DELETE forbidden/i,
-      );
+      await expect(
+        client.query(`DELETE FROM stock_movement WHERE variant_id = $1`, [variantId]),
+      ).rejects.toThrow(/Class 2.*DELETE forbidden/i);
     });
   });
 

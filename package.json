@@ -29,10 +29,10 @@
     "test:lighthouse:mobile": "lhci autorun --config=./lighthouserc.mobile.json",
     "ci:grep": "node scripts/ci/grep-checks.mjs",
     "ci:lockfiles": "node scripts/ci/no-mixed-lockfiles.mjs",
-    "db:migrate": "node-pg-migrate -f migrations/.config.cjs",
-    "db:migrate:create": "node-pg-migrate -f migrations/.config.cjs create",
-    "db:migrate:up": "node-pg-migrate -f migrations/.config.cjs up",
-    "db:migrate:down": "node-pg-migrate -f migrations/.config.cjs down"
+    "db:migrate": "node-pg-migrate -f migrations/.config.cjs -m migrations/sql",
+    "db:migrate:create": "node-pg-migrate -f migrations/.config.cjs -m migrations/sql -j sql create",
+    "db:migrate:up": "node-pg-migrate -f migrations/.config.cjs -m migrations/sql up",
+    "db:migrate:down": "node-pg-migrate -f migrations/.config.cjs -m migrations/sql down"
   },
   "dependencies": {
     "next": "^15.0.0",

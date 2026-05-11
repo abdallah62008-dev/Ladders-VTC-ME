@@ -71,10 +71,9 @@ export async function seedRole(
       [slug, slug.split('.')[0] ?? 'misc'],
     );
 
-    const perm = await client.query<{ id: string }>(
-      `SELECT id FROM permission WHERE slug = $1`,
-      [slug],
-    );
+    const perm = await client.query<{ id: string }>(`SELECT id FROM permission WHERE slug = $1`, [
+      slug,
+    ]);
     const permissionId = perm.rows[0]!.id;
 
     await client.query(
@@ -123,6 +122,36 @@ export async function withUser<T>(
     return await fn();
   } finally {
     await client.query(`RESET ROLE`);
+  }
+}
+
+/**
+ * Run a database operation expected to fail with a Postgres error, wrapped
+ * in a SAVEPOINT so the transaction recovers from the aborted state.
+ *
+ * After a failing query Postgres aborts the entire transaction and ignores
+ * all subsequent commands until `ROLLBACK TO SAVEPOINT` (or `ROLLBACK` /
+ * `COMMIT`). Without this wrapper, downstream cleanup like `RESET ROLE`
+ * inside `withUser`'s finally fails with code 25P02 (`current transaction
+ * is aborted`).
+ *
+ * The original error is re-thrown unchanged so callers can still use
+ * vitest's `expect(...).rejects.toThrow(matcher)` syntax. On success the
+ * savepoint is released so it doesn't accumulate.
+ */
+export async function withSavepoint<T>(client: pg.PoolClient, fn: () => Promise<T>): Promise<T> {
+  const sp = `sp_${Math.random().toString(36).slice(2, 10)}`;
+  await client.query(`SAVEPOINT ${sp}`);
+  try {
+    const result = await fn();
+    await client.query(`RELEASE SAVEPOINT ${sp}`);
+    return result;
+  } catch (err) {
+    await client.query(`ROLLBACK TO SAVEPOINT ${sp}`).catch(() => {
+      // Best-effort rollback — ignore secondary errors (savepoint may already
+      // be unreachable if the connection itself died).
+    });
+    throw err;
   }
 }
 

@@ -123,3 +123,5 @@ All architecture, decisions, and policies live in `/docs`. Start with:
 3. `docs/15-phases/phase-0-close-summary.md` — what Phase 0 produced
 4. `docs/15-phases/phase-1-acceptance.md` — what Phase 1 must deliver
 5. `docs/15-phases/phase-1-execution-plan.md` — sprint roadmap
+
+> Sprint 2A kickoff: CI Lighthouse validation trigger.

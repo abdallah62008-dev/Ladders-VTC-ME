@@ -90,7 +90,19 @@ export function redactCostFieldsDeep<T>(value: T, viewer: ViewerContext): T {
     return value.map((v) => redactCostFieldsDeep(v, viewer)) as unknown as T;
   }
   if (value !== null && typeof value === 'object') {
-    return redactCostFields(value as Record<string, unknown>, viewer) as T;
+    // First strip top-level cost fields, then recurse into the remaining
+    // property values. Without this recursion `redactCostFieldsDeep` would
+    // behave identically to `redactCostFields` for objects and miss nested
+    // cost fields like `{ product: { actual_cost: 50 } }`.
+    const stripped = redactCostFields(value as Record<string, unknown>, viewer) as Record<
+      string,
+      unknown
+    >;
+    const result: Record<string, unknown> = {};
+    for (const [key, v] of Object.entries(stripped)) {
+      result[key] = redactCostFieldsDeep(v, viewer);
+    }
+    return result as T;
   }
   return value;
 }
