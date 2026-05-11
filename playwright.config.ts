@@ -37,13 +37,19 @@ export default defineConfig({
       testMatch: /.*\.visual\.spec\.ts/,
     },
   ],
-  // Local dev server boot (CI uses pre-built start)
-  webServer: process.env.CI
-    ? undefined
-    : {
-        command: 'pnpm dev',
-        url: 'http://localhost:3000',
-        reuseExistingServer: true,
-        timeout: 120_000,
-      },
+  // Playwright owns the app-server lifecycle in BOTH local and CI runs.
+  // Local: `pnpm dev`, reuseable. CI: `pnpm start` against the `pnpm build`
+  // output (step 13), fresh process every run.
+  //
+  // Previously the webServer block was `undefined` in CI and the workflow was
+  // expected to "use pre-built start" — but `ci.yml` step 14b never actually
+  // launched a server, so Playwright tried to navigate to localhost:3000 with
+  // nothing listening → every E2E test failed with ECONNREFUSED. Letting
+  // Playwright manage the lifecycle (this block) is the canonical fix.
+  webServer: {
+    command: process.env.CI ? 'pnpm start' : 'pnpm dev',
+    url: 'http://127.0.0.1:3000',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+  },
 });
